@@ -1,11 +1,11 @@
 ## ----install-packages---------------------------------------------
-install.packages(c("tidycensus", "tidyverse", "plotly"))
+#install.packages(c("tidycensus", "tidyverse", "plotly"))
 
 
 ## ----api-key------------------------------------------------------
 library(tidycensus)
 
-census_api_key("YOUR KEY GOES HERE", install = TRUE)
+#census_api_key("YOUR KEY GOES HERE", install = TRUE)
 
 
 ## ----decennial------------------------------------------------------------------
@@ -72,6 +72,25 @@ dane_income <- get_acs(
 
 dane_income
 
+mult_medage <- get_acs(
+  geography = "block group", 
+  variables = "B01002_001", 
+  state = "OR", 
+  county = "Multnomah"
+)
+
+mult_medage
+
+
+all_cd <- get_acs(
+  geography = "congressional district", 
+  variables = "B01001_001"
+)
+
+
+all_cd
+
+
 
 ## ----search-variables---------------------------------------------
 vars <- load_variables(2019, "acs5")
@@ -105,8 +124,8 @@ hhinc_wide
 ga_wide <- get_acs(
   geography = "county",
   state = "GA",
-  variables = c(medinc = "B19013_001",
-                medage = "B01002_001"),
+  variables = c(medinc_ = "B19013_001",
+                medage_ = "B01002_001"),
   output = "wide"
 )
 
@@ -125,22 +144,23 @@ library(tidyverse)
 
 median_age <- get_acs(
   geography = "county",
-  variables = "B01002_001"
+  variables = c("B01001_001","B01002_001"),
+  output = "wide"
 )
 
 
 
 ## ----sort-ascending-------------------------------------------------------------
-arrange(median_age, estimate)
+arrange(median_age, B01002_001E)
 
 
 
 ## ----sort-descending------------------------------------------------------------
-arrange(median_age, desc(estimate))
+arrange(median_age, desc(B01002_001E))
 
 
 ## ----filter-above-50------------------------------------------------------------
-above50 <- filter(median_age, estimate >= 50)
+above50 <- filter(median_age, B01002_001E >= 50)
 
 above50
 
@@ -160,7 +180,8 @@ az_race <- get_acs(
   state = "AZ",
   variables = race_vars,
   summary_var = "B03002_001"
-)
+) %>% 
+  mutate(eperc = estimate / summary_est)
 
 
 ## ----view-summary-variable------------------------------------------------------
@@ -231,6 +252,34 @@ salt_lake_grouped <- salt_lake %>%
 salt_lake_grouped
 
 
+
+or_counties <- get_acs(
+  geography = "county",
+  variables = "DP02_0068P",
+  state = "Oregon",
+  year = 2019
+)
+
+or_counties
+arrange(or_counties, desc(estimate))
+arrange(or_counties, estimate)
+
+counties <- get_acs(
+  geography = "county",
+  variables = "DP02_0068P",
+  state = c("New York", "New Jersey"),
+  year = 2019
+)
+
+counties
+arrange(counties, desc(estimate))
+arrange(counties, estimate)
+
+
+
+
+
+
 ## ----get-metro-data-------------------------------------------------------------
 library(tidycensus)
 library(tidyverse)
@@ -242,7 +291,7 @@ metros <-
     summary_var = "B01003_001",
     survey = "acs1"
   ) %>%
-  filter(min_rank(desc(summary_est)) < 21)
+  filter(min_rank(desc(summary_est)) < 51)
 
 
 ## ----view-metro-data------------------------------------------------------------
@@ -337,6 +386,7 @@ ggplot(utah_filtered, aes(x = value, y = AGEGROUP, fill = SEX)) +
 utah_pyramid <- ggplot(utah_filtered, aes(x = value, y = AGEGROUP, fill = SEX)) +
   geom_col(width = 0.95, alpha = 0.75) +
   theme_minimal(base_family = "Verdana") +
+
   scale_x_continuous(labels = function(y) paste0(abs(y / 1000), "k")) +
   scale_y_discrete(labels = function(x) gsub("Age | years", "", x)) +
   scale_fill_manual(values = c("darkred", "navy")) +
