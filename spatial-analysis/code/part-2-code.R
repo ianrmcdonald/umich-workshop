@@ -8,31 +8,41 @@ remotes::install_github("walkerke/crsuggest")
 
 ## Set your Census API key if need be
 library(tidycensus)
-census_api_key("YOUR KEY GOES HERE")
+#census_api_key("YOUR KEY GOES HERE")
 
 
 ## ----basic-usage---------------------------------------------------------------------------------------
 library(tigris)
 
 or_counties <- counties(state = "OR")
+wa_counties <- counties(state = "WA")
 
 or_counties
+wa_counties
 
 
 ## ----basic-plot----------------------------------------------------------------------------------------
 plot(or_counties$geometry)
+plot(wa_counties$geometry)
 
 
 ## ----benton-tracts-------------------------------------------------------------------------------------
 benton_tracts <- tracts(state = "OR", county = "Benton")
+whatcom_tracts <- tracts(state = "WA", county = "Whatcom", cb=TRUE)
 
 plot(benton_tracts$geometry)
+plot(whatcom_tracts$geometry)
+
 
 
 ## ----benton-roads--------------------------------------------------------------------------------------
 benton_roads <- roads(state = "OR", county = "Benton")
+whatcom_roads <- roads(state = "WA", county = "Whatcom")
+
 
 plot(benton_roads$geometry)
+plot(whatcom_roads$geometry)
+
 
 
 ## ----dc-landmarks--------------------------------------------------------------------------------------
@@ -49,8 +59,10 @@ plot(mi_counties$geometry)
 
 ## ----michigan-cb---------------------------------------------------------------------------------------
 mi_counties_cb <- counties("MI", cb = TRUE)
+wa_counties_cb <- counties("WA", cb = TRUE)
 
 plot(mi_counties_cb$geometry)
+plot(wa_counties_cb$geometry)
 
 
 ## ----get-yearly-data-----------------------------------------------------------------------------------
@@ -77,6 +89,7 @@ plot(tarrant20$geometry, main = "2020")
 library(mapview)
 
 mapview(tarrant20)
+mapview(wa_counties_cb)
 
 
 ## ----sync, eval = FALSE--------------------------------------------------------------------------------
@@ -126,6 +139,11 @@ dc_income <- get_acs(geography = "tract",
                      variables = c(hhincome = "B19013_001"), 
                      state = "DC", 
                      geometry = TRUE)
+
+dc_income_1 <- get_acs(geography = "tract", 
+                     variables = c(hhincome = "B19013_001"), 
+                     state = "DC", 
+                     geometry = FALSE)
 
 
 
@@ -202,7 +220,7 @@ tm_shape(hennepin_black,
   tm_polygons(col = "percent",
           style = "jenks",
           n = 7,
-          palette = "viridis",
+          palette = "PuBuGn",
           title = "ACS estimate",
           legend.hist = TRUE) + 
   tm_layout(title = "Percent Black population\nby Census tract",
@@ -278,13 +296,15 @@ tm_shape(us_median_age) +
 library(mapview)
 
 mapview(dc_income, zcol = "estimate")
-
+m1 <- mapview(dc_income, zcol = "estimate")
+saveWidget(m1, "dcincomemap.html") #this doesn't work without some debugging
 
 ## ----write-shp, eval = FALSE---------------------------------------------------------------------------
 library(sf)
 
 st_write(dc_income, "data/dc_income.shp")
 
+mapview(dc_income, zcol = "estimate") + mapview(dc_landmarks)
 
 ## ----get-vax-data--------------------------------------------------------------------------------------
 library(tidyverse)
@@ -455,4 +475,7 @@ texas_income <- get_acs(
   state = "TX",
   geometry = TRUE
 )
+
+#http://ssdan.net/blog/webinar-resources-r-Mar2021
+
 
