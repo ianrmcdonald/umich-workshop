@@ -6,9 +6,14 @@ pkgs <- c("tidyverse", "tidycensus", "spdep", "mapview",
 install.packages(pkgs)
 remotes::install_github("walkerke/crsuggest")
 
-## Set your Census API key if need be
-library(tidycensus)
-#census_api_key("YOUR KEY GOES HERE")
+# ## Set your Census API key if need be
+# library(tidycensus)
+# <<<<<<< HEAD
+# #census_api_key("YOUR KEY GOES HERE")
+# =======
+# options(tigris_use_cache = TRUE)
+# census_api_key("YOUR KEY GOES HERE")
+# >>>>>>> upstream/main
 
 
 ## ----basic-usage---------------------------------------------------------------------------------------
@@ -66,8 +71,8 @@ plot(wa_counties_cb$geometry)
 
 
 ## ----get-yearly-data-----------------------------------------------------------------------------------
-tarrant90 <- tracts("TX", "Tarrant", cb = TRUE, year = 1990)
-tarrant00 <- tracts("TX", "Tarrant", cb = TRUE, year = 2000)
+tarrant90 <- suppressMessages(tracts("TX", "Tarrant", cb = TRUE, year = 1990))
+tarrant00 <- suppressMessages(tracts("TX", "Tarrant", cb = TRUE, year = 2000))
 tarrant10 <- tracts("TX", "Tarrant", cb = TRUE, year = 2010)
 # Cartographic boundary files not yet released for 2020
 tarrant20 <- tracts("TX", "Tarrant", year = 2020)
@@ -119,6 +124,7 @@ st_crs(fl_counties)
 
 ## ----suggest-crs---------------------------------------------------------------------------------------
 library(crsuggest)
+library(tidyverse)
 
 fl_crs <- suggest_crs(fl_counties)
 
@@ -134,6 +140,10 @@ head(fl_projected)
 ## ----tidycensus-geometry-------------------------------------------------------------------------------
 library(tidycensus)
 options(tigris_use_cache = TRUE)
+
+dc_income1 <- get_acs(geography = "tract", 
+                     variables = c(hhincome = "B19013_001"), 
+                     state = "DC")
 
 dc_income <- get_acs(geography = "tract", 
                      variables = c(hhincome = "B19013_001"), 
@@ -158,8 +168,8 @@ plot(dc_income["estimate"])
 ## ----geom-sf-------------------------------------------------------------------------------------------
 library(tidyverse)
 
-dc_map <- ggplot(dc_income, aes(fill = estimate)) + 
-  geom_sf()
+dc_map <- ggplot() + 
+  geom_sf(data = dc_income, aes(fill = estimate, geometry = geom))
 
 
 ## ----plot-geom-sf--------------------------------------------------------------------------------------
@@ -296,8 +306,16 @@ tm_shape(us_median_age) +
 library(mapview)
 
 mapview(dc_income, zcol = "estimate")
+<<<<<<< HEAD
 m1 <- mapview(dc_income, zcol = "estimate")
 saveWidget(m1, "dcincomemap.html") #this doesn't work without some debugging
+=======
+
+m1 <- mapview(dc_income, zcol = "estimate")
+
+htmlwidgets::saveWidget(m1, "dc_income_map.html")
+
+>>>>>>> upstream/main
 
 ## ----write-shp, eval = FALSE---------------------------------------------------------------------------
 library(sf)
